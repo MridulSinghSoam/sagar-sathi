@@ -3,26 +3,146 @@
 <head>
     <title>Fish Disease Detector</title>
     <style>
-        body { font-family:sans-serif; background: #f3f8fa; color:#27353c;}
-        .container { width: 420px; margin: 60px auto; background:#fff; border-radius:8px; box-shadow:0 3px 13px #b1b7ba3a; padding:32px;}
-        h2 { color: #227c6b; }
-        .result { margin-top: 27px; font-size:1.13em; font-weight:500; padding: 12px 16px; background: #eafbee; border-radius:7px;}
-        .preview-img {max-width:250px; max-height:150px; margin-top:18px; border-radius:4px;}
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: radial-gradient(circle at 60% 35%, #1b61bb 0%, #092d51 100%);
+            color: #fff; margin: 0; padding: 0;
+        }
+        .main-container { max-width: 1400px; margin: 40px auto; padding: 32px 24px;
+            background: rgba(18,32,60,0.82); border-radius: 18px; box-shadow: 0 6px 30px #1e2f4037;}
+        .top-bar { margin-bottom: 24px; }
+        .top-bar input[type=file] { padding:6px;color:#1a3460;background:#213763; }
+        .top-bar button { 
+            padding:10px 24px; font-size:1em; font-weight:600; border-radius:7px;
+            background: linear-gradient(90deg,#2af598,#009efd); border: none; color:#0a3983;
+            box-shadow: 0 2px 8px #1e2f403c; cursor:pointer;
+        }
+        .top-row { display: flex; justify-content: space-between; gap:20px; margin-bottom:38px; }
+        .img-box, .img-placeholder {width: 365px; height: 175px; background: #143567;
+            border-radius:15px; display:flex; align-items:center; justify-content:center;
+            min-width:365px; min-height:175px; margin-bottom:7px;}
+        .img-box img {width:100%;height:100%;object-fit:cover;display:block;border-radius:15px;}
+        .img-placeholder {color:#62a8dd;font-size:1.18em; border:2px dashed #53bfff77;}
+        .detect-label-card {width: 340px; height: 175px; background:#143567; border-radius:15px; 
+            display:flex; flex-direction:column; justify-content:center; align-items:center; font-size:1.13em;}
+        .detect-label-card span {color:#8bebd6; font-weight:600; font-size:1.18em;}
+        .detect-label-placeholder {color:#62a8dd;}
+        .side-panel {
+            display:flex; flex-direction:column; gap:18px; align-items:center; min-width:200px;
+        }
+        .accuracy-circle {
+            width: 138px; height: 138px;
+            background: radial-gradient(circle at 60% 65%, #132a47 78%, #153859 100%);
+            border-radius: 50%; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; box-shadow: 0 0 22px #142a41b7; margin-bottom: 18px; position: relative;
+        }
+        .accuracy-icon { position: absolute; top: 22px; left: 50%; transform: translateX(-50%); opacity: 0.92;}
+        .accuracy-percent { font-size: 1.6em; color: #64e6c3; font-weight: 600; margin-top:32px;}
+        .accuracy-label { font-size: 1em; color: #64e6c3; margin-top: 2px;}
+        .card-info {
+            background: #1a3460; border-radius:14px;
+            padding:18px 18px; text-align:center;
+            font-size:1.10em; margin-top:6px;
+        }
+        .card-info .card-icon { display: inline-block; vertical-align: middle; margin-right: 7px; }
+        .disease-list-card {
+            background: #1a3460; border-radius:14px; padding:19px 16px; font-size:1.03em; min-width:220px;
+        }
+        .disease-list-title {color:#7cdfef;font-size:1em;margin-bottom:4px;}
+        .disease-cat {margin:9px 0;padding:7px 0;color:#c8eff8;border-bottom:1px solid #244b7a;font-size:0.98em;}
+        .past-section { margin-top:42px; background:#163059; border-radius:14px; padding:22px;}
+        .past-title { font-size:1.14em; font-weight:600; margin-bottom:10px;}
+        .past-desc {color:#7fd7f7;font-size:0.96em;margin-bottom:6px;}
+        .past-grid { display:flex; gap:24px; flex-wrap:wrap; margin-top:12px; }
+        .past-item, .past-placeholder {
+            width: 222px; border-radius:12px; background: #0f2240;
+            padding:13px 9px; display:flex; flex-direction:column; align-items:center;
+            min-height:158px; justify-content:center;}
+        .past-img { width:100%; border-radius:8px; object-fit:cover; max-height:85px; }
+        .past-result { margin-top:7px; color:#3fefdf; font-size:1.04em; font-weight:600;}
+        .past-placeholder {color: #62a8dd; border: 2px dashed #53bfff77; height:85px;margin-bottom:10px;}
+        .past-filename {font-size:0.97em;opacity:0.85;margin-top:3px;}
+        .past-timestamp {font-size:0.92em;opacity:0.66;margin-top:8px;}
     </style>
 </head>
 <body>
-<div class="container">
-    <h2>Fish Disease Detection</h2>
-    <form method="post" enctype="multipart/form-data">
-        <input type="file" name="image" required><br><br>
-        <button type="submit">Diagnose</button>
-    </form>
-    {% if filename %}
-        <img class="preview-img" src="{{ url_for('static', filename=filename) }}" alt="Uploaded fish">
-    {% endif %}
-    {% if prediction %}
-        <div class="result">{{ prediction }}</div>
-    {% endif %}
+<div class="main-container">
+
+    <!-- TOP BAR: upload input -->
+    <div class="top-bar">
+        <form method="post" enctype="multipart/form-data" style="display:flex; align-items:center; gap:17px;">
+            <label for="file"><b>Upload&nbsp;*</b></label>
+            <input type="file" name="image" required>
+            <button type="submit">Detect</button>
+        </form>
+    </div>
+
+    <!-- Main row: image preview, disease detected, side panel, categories -->
+    <div class="top-row">
+        <div>
+        {% if filename %}
+            <div class="img-box">
+                <img src="{{ url_for('static', filename=filename) }}" alt="Uploaded fish">
+            </div>
+        {% else %}
+            <div class="img-placeholder">
+                No image uploaded
+            </div>
+        {% endif %}
+        </div>
+        <div class="detect-label-card">
+            {% if prediction %}
+                <div style="margin-bottom:7px;">desease detected</div>
+                <span>{{ prediction }}</span>
+            {% else %}
+                <div class="detect-label-placeholder">No disease detected yet.</div>
+            {% endif %}
+        </div>
+        <!-- Side panel starts here -->
+        <div class="side-panel">
+            <div class="accuracy-circle">
+                <span class="accuracy-icon">
+                    <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+                        <path d="M14 3V17M14 17L18 13M14 17L10 13" stroke="#64e6c3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <span class="accuracy-percent">{{ accuracy }}%</span>
+                <span class="accuracy-label">Accuracy</span>
+            </div>
+            <div class="card-info">
+                <span style="display:inline-flex;align-items:center;gap:7px;font-size:1.11em;">
+                    <svg width="18" height="18" viewBox="0 0 512 512" fill="#6ae9c3" style="vertical-align:middle;"><path d="M256 0C90.924 0 0 90.927 0 256c0 165.076 90.924 256 256 256 165.073 0 256-90.924 256-256C512 90.927 421.073 0 256 0zm0 472c-119.103 0-216-67.002-216-216S136.897 40 256 40s216 67.002 216 216-96.897 216-216 216zm-24-344v128c0 13.254 10.746 24 24 24s24-10.746 24-24V128c0-13.254-10.746-24-24-24s-24 10.746-24 24zm24 200c13.254 0 24-10.746 24-24s-10.746-24-24-24-24 10.746-24 24 10.746 24 24 24z"/></svg>
+                    Model Informations
+                </span>
+                <div style="padding:7px 0 0 0;font-size:1.55em;color:#6ae9c3;font-weight:600;">{{ num_diseases }}</div>
+                <div style="font-size:1.13em;">disease categories</div>
+            </div>
+        </div>
+        <div class="disease-list-card">
+            <div class="disease-list-title">fish deseaces category</div>
+            {% for disease in diseases %}
+                <div class="disease-cat">{{ disease }}</div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="past-section">
+        <div class="past-title">Past Uploads</div>
+        <div class="past-desc">these are the fishes you uploaded previously</div>
+        <div class="past-grid">
+            {% for upload in past_uploads %}
+                {% if upload.filename %}
+                    <div class="past-item">
+                        <img class="past-img" src="{{ url_for('static', filename=upload['filename']) }}">
+                        <div class="past-filename">{{ upload['filename'] }}</div>
+                        <div class="past-result">{{ upload['result'] }}</div>
+                        <div class="past-timestamp">uploaded on: {{ upload['timestamp'] }}</div>
+                    </div>
+                {% else %}
+                    <div class="past-item past-placeholder">No image uploaded</div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
 </div>
 </body>
 </html>
