@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fish Disease Detector</title>
+    <style>
+        body { font-family:sans-serif; background: #f3f8fa; color:#27353c;}
+        .container { width: 420px; margin: 60px auto; background:#fff; border-radius:8px; box-shadow:0 3px 13px #b1b7ba3a; padding:32px;}
+        h2 { color: #227c6b; }
+        .result { margin-top: 27px; font-size:1.13em; font-weight:500; padding: 12px 16px; background: #eafbee; border-radius:7px;}
+        .preview-img {max-width:250px; max-height:150px; margin-top:18px; border-radius:4px;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Fish Disease Detection</h2>
+    <form method="post" enctype="multipart/form-data">
+        <input type="file" name="image" required><br><br>
+        <button type="submit">Diagnose</button>
+    </form>
+    {% if filename %}
+        <img class="preview-img" src="{{ url_for('static', filename=filename) }}" alt="Uploaded fish">
+    {% endif %}
+    {% if prediction %}
+        <div class="result">{{ prediction }}</div>
+    {% endif %}
+</div>
+</body>
+</html>
