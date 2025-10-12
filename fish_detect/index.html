@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fish Population & Extinction Predictor</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="google_translate_element"></div>
+    <div class="container">
+        <header>
+            <h1>🐟 Fish Population & Extinction Predictor</h1>
+            <p>Predict fish populations and extinction risks to promote sustainable fishing</p>
+        </header>
+
+        <main>
+            <section class="input-section">
+                <div class="form-group">
+                    <label for="fishName">Fish Species Name:</label>
+                    <input type="text" id="fishName" placeholder="e.g., Atlantic Cod" autocomplete="off">
+                    <div id="suggestions" class="suggestions"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="years">Years to Predict:</label>
+                    <input type="number" id="years" min="1" max="100" placeholder="e.g., 10">
+                </div>
+
+                <button id="predictBtn" onclick="predictFish()">🔮 Predict Population</button>
+            </section>
+
+            <section class="results-section">
+                <div id="loading" class="loading hidden">
+                    <div class="spinner"></div>
+                    <p>Analyzing fish data...</p>
+                </div>
+
+                <div id="results" class="results hidden">
+                    <div class="species-info">
+                        <h3 id="speciesName"></h3>
+                        <p id="scientificName"></p>
+                        <div id="conservationStatus" class="status-badge"></div>
+                    </div>
+
+                    <div class="prediction-results">
+                        <div class="prediction-card">
+                            <h4>Population Trend</h4>
+                            <p id="populationTrend"></p>
+                            <div id="trendChart" class="trend-indicator"></div>
+                        </div>
+
+                        <div class="prediction-card">
+                            <h4>Extinction Risk</h4>
+                            <p id="extinctionRisk"></p>
+                            <div id="riskLevel" class="risk-indicator"></div>
+                        </div>
+
+                        <div class="fishing-recommendation">
+                            <h4>Fishing Recommendation</h4>
+                            <div id="fishingAdvice" class="advice-box"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="map-section">
+                <h3>Species Habitat Locations</h3>
+                <div id="map"></div>
+                <div class="map-legend">
+                    <div class="legend-item">
+                        <span class="legend-color safe"></span> Safe to Fish
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color caution"></span> Fish with Caution
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color danger"></span> Do Not Fish
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>

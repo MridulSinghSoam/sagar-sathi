@@ -1,0 +1,86 @@
+{
+  "brand": {
+    "name": "BankDash",
+    "primary": "#1a3a8f",
+    "secondary": "#00b5ad"
+  },
+  "expenses": [
+    { "label": "Entertainment", "value": 30, "color": "#c65cff" },
+    { "label": "Bill Expense", "value": 15, "color": "#ffa640" },
+    { "label": "Investment", "value": 20, "color": "#ff5c8a" },
+    { "label": "Others", "value": 35, "color": "#3b4fff" }
+  ],
+  "weeklyActivity": {
+    "labels": ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"],
+    "deposit": [220, 260, 510, 180, 430, 490, 460],
+    "withdraw": [130, 95, 190, 90, 160, 215, 235]
+  },
+  "listings": [
+    {
+      "id": 1,
+      "title": "Fully Furnished Smart Studio Apartment",
+      "rating": 4.8,
+      "host": "Mercedes Vito",
+      "guests": 2,
+      "bedrooms": 1,
+      "bathrooms": 2,
+      "type": "Entire Studio Apartment",
+      "price": 120,
+      "image": "assets/apt1.jpg",
+      "coordinates": [34.0522, -118.2437]
+    },
+    {
+      "id": 2,
+      "title": "Furnished Apartment",
+      "rating": 3.8,
+      "host": "Mercedes Vito",
+      "guests": 4,
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "type": "Entire home",
+      "price": 95,
+      "image": "assets/apt2.jpg",
+      "coordinates": [34.0622, -118.2537]
+    },
+    {
+      "id": 3,
+      "title": "Classic Studio Apartment",
+      "rating": 4.0,
+      "host": "Mercedes Vito",
+      "guests": 2,
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "type": "Share with Super Host",
+      "price": 70,
+      "image": "assets/apt3.jpg",
+      "coordinates": [34.0422, -118.2637]
+    }
+  ],
+  "mapConfig": {
+    "center": [34.0522, -118.2437],
+    "zoom": 12,
+    "highlightedArea": {
+      "coordinates": [
+        [34.0422, -118.2737],
+        [34.0622, -118.2737],
+        [34.0722, -118.2437],
+        [34.0622, -118.2137],
+      [34.0322, -118.2137],
+        [34.0322, -118.2537]
+      ],
+      "price": "$720,000",
+      "beds": 4,
+      "baths": 3,
+      "sqft": 2100,
+      "image": "assets/apt1.jpg",
+      "address": "Downtown Los Angeles"
+    },
+    "priceMarkers": [
+      { "coordinates": [34.0522, -118.2437], "price": "$850K" },
+      { "coordinates": [34.0622, -118.2537], "price": "$720K" },
+      { "coordinates": [34.0422, -118.2637], "price": "$650K" },
+      { "coordinates": [34.0322, -118.2337], "price": "$780K" },
+      { "coordinates": [34.0722, -118.2237], "price": "$920K" }
+    ]
+  }
+}

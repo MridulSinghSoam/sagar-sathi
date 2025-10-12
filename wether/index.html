@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Marine Weather Storm Detector - Click Anywhere for Weather</title>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="google_translate_element"></div>
+    <div class="header">
+        <h1>Marine Weather Storm Detector</h1>
+    </div>
+
+    <div class="container">
+
+        <div class="dashboard-grid">
+            <div class="weather-panel">
+                <div class="weather-info">
+                    <h3>Your Current Location</h3>
+                    <div id="current-location-weather">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Getting your location...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="map-container">
+                <h3>🗺️ Interactive Weather Map</h3>
+                <div style="position: relative;">
+                    <div id="weather-map"></div>
+                    <div class="click-hint">Click anywhere on the map for weather data</div>
+                </div>
+            </div>
+
+            <div class="weather-panel">
+                <div class="weather-info">
+                    <h3>📊 Clicked Locations</h3>
+                    <div id="clicked-locations">
+                        <p style="color: #7f8c8d; text-align: center; padding: 20px;">
+                            Click on the map to add locations and see weather data here
+                        </p>
+                    </div>
+                </div>
+                <div id="comparison-section"></div>
+            </div>
+        </div>
+
+        <div class="controls-panel">
+            <button class="control-button" onclick="refreshAllData()">
+                🔄 Refresh All
+            </button>
+            <button class="control-button clear-button" onclick="clearAllLocations()">
+                🗑️ Clear All
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Fetching weather data...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

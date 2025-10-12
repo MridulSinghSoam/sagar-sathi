@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marine Dashboard</title>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Top Navigation Buttons -->
+        <div id="google_translate_element"></div>
+        <div class="nav-buttons">
+            <a href="../sos/sos-emergency.html" class="nav-btn-sos">
+                <span>SoS</span>
+            </a>
+            <a href="../dashoardfinal/index.html" class="nav-btn">
+                <span>Fish Researchers Data</span>
+            </a>
+            <a href="../fish-population/fishing-zone-map.html" class="nav-btn">
+                <span>Fish Population</span>
+            </a>
+            <a href="../wether/index.html" class="nav-btn">
+                <span>Weather</span>
+            </a>
+        </div>
+
+        <div class="main-grid">
+            <!-- Welcome Card -->
+            <div class="welcome-card">
+                <div class="welcome-content">
+                    <p class="welcome-text">Welcome back to,</p>
+                    <h1 class="user-name">Sagar Saathi</h1>
+                    <p class="subtitle">Glad to see you again!</p>
+                </div>
+            </div>
+
+            <!-- Market Value Card -->
+            <div class="market-card">
+                <h3 class="card-title">Market value</h3>
+                <div class="market-grid">
+                    <div class="market-item">
+                        <span class="fish-label">Hilsa (Ilish)</span>
+                        <span class="fish-value">₹2,200 – ₹3,000</span>
+                    </div>
+                    <div class="market-item">
+                        <span class="fish-label">Rohu</span>
+                        <span class="fish-value">₹350 – ₹893</span>
+                    </div>
+                    <div class="market-item">
+                        <span class="fish-label">Catla</span>
+                        <span class="fish-value">₹240 – ₹525</span>
+                    </div>
+                    <div class="market-item">
+                        <span class="fish-label">Pangas (Pangasius)</span>
+                        <span class="fish-value">₹280 – ₹350</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Population Chart Card -->
+            <div class="population-card">
+                <div class="population-header">
+                    <h3 class="card-title">fish population in that area</h3>
+                    <p class="population-subtitle">fish record 2021</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="populationChart"></canvas>
+                </div>
+            </div>
+
+            </div>
+        </div>
+    </div>
+<script>
+(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="pIqaWXt4T2-S-Tp2antsY";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
+</script>
+    <script src="script.js"></script>
+</body>
+</html>

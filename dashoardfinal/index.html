@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian Marine & Fish Biodiversity Explorer</title>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 40px rgba(0,0,0,0.2);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2em;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 300;
+        }
+
+        .header-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 5px;
+            font-size: 0.9em;
+        }
+
+        .control-panel {
+            background: #34495e;
+            padding: 20px 30px;
+            color: white;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn:disabled {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn.success { background: linear-gradient(135deg, #27ae60, #219a52); }
+        .btn.danger { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        .btn.warning { background: linear-gradient(135deg, #f39c12, #e67e22); }
+        .btn.info { background: linear-gradient(135deg, #8e44ad, #732d91); }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .main-content {
+            display: flex;
+            height: calc(100vh - 140px);
+        }
+
+        .sidebar {
+            width: 380px;
+            background: #f8f9fa;
+            border-right: 2px solid #dee2e6;
+            overflow-y: auto;
+            padding: 25px;
+        }
+
+        .map-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-bar {
+            width: 350px;
+            height: 25px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 15px auto;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 12px;
+        }
+
+        .data-summary, .filter-section, .species-list {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+        }
+
+        .data-summary h3, .filter-section h3, .species-list h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px 15px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c5364;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #6c757d;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        .data-sources {
+            margin-top: 15px;
+            padding: 15px;
+            background: #e8f4f8;
+            border-radius: 8px;
+        }
+
+        .data-sources h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .source-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+
+        .filter-group {
+            margin-bottom: 20px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .filter-group input, .filter-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .filter-group input:focus, .filter-group select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .species-item {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin-bottom: 5px;
+        }
+
+        .species-item:hover {
+            background: linear-gradient(135deg, #e8f4f8, #d5edff);
+            transform: translateX(5px);
+        }
+
+        .species-name {
+            font-weight: 600;
+            color: #2c5364;
+            font-size: 15px;
+        }
+
+        .species-info {
+            font-size: 13px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .species-source {
+            font-size: 11px;
+            color: #999;
+            font-style: italic;
+            margin-top: 3px;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .legend h4 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .legend-color {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .species-marker {
+            border: 3px solid white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+            font-weight: bold;
+        }
+
+        .species-marker.fish { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .species-marker.crustacean { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        .species-marker.mollusk { background: linear-gradient(135deg, #f39c12, #e67e22); }
+        .species-marker.coral { background: linear-gradient(135deg, #e91e63, #c2185b); }
+        .species-marker.other { background: linear-gradient(135deg, #95a5a6, #7f8c8d); }
+
+        .popup-content {
+            min-width: 320px;
+            font-family: inherit;
+        }
+
+        .popup-family-image {
+            width: 100%;
+            max-width: 250px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 2px solid #e9ecef;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .popup-family-image:hover {
+            transform: scale(1.02);
+        }
+
+        .popup-image-container {
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .popup-image-caption {
+            font-size: 12px;
+            color: #6c757d;
+            font-style: italic;
+            margin-top: 5px;
+        }
+
+        .popup-image-attribution {
+            font-size: 10px;
+            color: #999;
+            font-style: italic;
+            margin-top: 3px;
+            line-height: 1.2;
+        }
+
+
+
+        .popup-content h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+
+        .popup-content p {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .popup-content strong {
+            color: #2c3e50;
+        }
+
+        .popup-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .popup-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.4);
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: 350px;
+            }
+            
+            .control-panel {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .btn-group {
+                justify-content: center;
+            }
+        }
+        /* Add to your existing <style> section */
+.popup-family-image {
+    width: 100%;
+    max-width: 200px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin: 10px 0;
+    border: 2px solid #e9ecef;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.popup-family-image:hover {
+    transform: scale(1.02);
+    transition: transform 0.2s ease;
+}
+
+.popup-image-container {
+    text-align: center;
+    margin: 15px 0;
+}
+
+.popup-image-caption {
+    font-size: 12px;
+    color: #6c757d;
+    font-style: italic;
+    margin-top: 5px;
+}
+
+.popup-content {
+    min-width: 320px; /* Increase popup width to accommodate images */
+}
+
+    </style>
+</head>
+<body>
+    <div id="google_translate_element"></div>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-water"></i> Indian Marine & Fish Biodiversity Explorer</h1>
+            <div class="header-info">
+                <div><strong>OBIS + FishBase Integration</strong></div>
+                <div id="currentDataset">Ready to load data...</div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="btn-group">
+                <button class="btn" id="loadObisBtn" onclick="loadObisData()">
+                    <i class="fas fa-download"></i> Load OBIS Marine Data
+                </button>
+                
+                <button class="btn success" id="loadFishBtn" onclick="loadIndianFishData()">
+                    <i class="fas fa-fish"></i> Load Indian Fish Species
+                </button>
+                
+                <button class="btn warning" id="loadBothBtn" onclick="loadCombinedData()">
+                    <i class="fas fa-layer-group"></i> Load All Data
+                </button>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn" id="exportCsvBtn" onclick="exportToCSV()" disabled>
+                    <i class="fas fa-file-csv"></i> Export CSV
+                </button>
+                <button class="btn" id="exportJsonBtn" onclick="exportToJSON()" disabled>
+                    <i class="fas fa-file-code"></i> Export JSON
+                </button>
+                <button class="btn danger" id="clearBtn" onclick="clearData()" disabled>
+                    <i class="fas fa-trash"></i> Clear Data
+                </button>
+            </div>
+            
+            <div id="recordCount" style="margin-left: auto; font-weight: bold;">
+                Records: 0
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Status Message -->
+                <div id="statusMessage" class="status-message"></div>
+
+                <!-- Data Summary -->
+                <div class="data-summary">
+                    <h3><i class="fas fa-chart-bar"></i> Data Summary</h3>
+                    <div class="summary-stats">
+                        <div class="stat-item">
+                            <span class="stat-number" id="totalSpecies">0</span>
+                            <div class="stat-label">Unique Species</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="totalRecords">0</span>
+                            <div class="stat-label">Total Records</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="dateRange">-</span>
+                            <div class="stat-label">Date Range</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="avgDepth">0m</span>
+                            <div class="stat-label">Avg Depth</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Data Sources -->
+                    <div class="data-sources">
+                        <h4><i class="fas fa-database"></i> Data Sources</h4>
+                        <div id="dataSourcesList">
+                            <div class="source-item">No data loaded</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filter-section">
+                    <h3><i class="fas fa-filter"></i> Filters</h3>
+                    <div class="filter-group">
+                        <label>Species Type:</label>
+                        <select id="speciesFilter" onchange="applyFilters()">
+                            <option value="">All Species</option>
+                            <option value="fish">Fish</option>
+                            <option value="crustacean">Crustaceans</option>
+                            <option value="mollusk">Mollusks</option>
+                            <option value="coral">Corals</option>
+                            <option value="other">Others</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Data Source:</label>
+                        <select id="sourceFilter" onchange="applyFilters()">
+                            <option value="">All Sources</option>
+                            <option value="OBIS">OBIS Marine</option>
+                            <option value="FishBase-GBIF">FishBase-GBIF</option>
+                            <option value="OBIS-Marine">OBIS Marine Species</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Depth Range (meters):</label>
+                        <input type="number" id="minDepthFilter" onchange="applyFilters()" placeholder="Min depth">
+                        <input type="number" id="maxDepthFilter" onchange="applyFilters()" placeholder="Max depth" style="margin-top: 8px;">
+                    </div>
+                    <div class="filter-group">
+                        <label>Search Species:</label>
+                        <input type="text" id="searchFilter" onkeyup="applyFilters()" placeholder="Enter species or family name">
+                    </div>
+                    <button class="btn warning" onclick="clearFilters()" style="width: 100%;">
+                        <i class="fas fa-eraser"></i> Clear Filters
+                    </button>
+                </div>
+
+                <!-- Species List -->
+                <div class="species-list">
+                    <h3><i class="fas fa-list"></i> Species Found (<span id="speciesCount">0</span>)</h3>
+                    <div id="speciesList" style="max-height: 400px; overflow-y: auto;">
+                        <p style="color: #6c757d; text-align: center; padding: 30px; font-style: italic;">
+                            Load data to explore species
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Container -->
+            <div class="map-container">
+                <div id="map"></div>
+                
+                <!-- Legend -->
+                <div class="legend">
+                    <h4><i class="fas fa-palette"></i> Species Types</h4>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #3498db, #2980b9);"></div>
+                        <span>Fish</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #e74c3c, #c0392b);"></div>
+                        <span>Crustaceans</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #f39c12, #e67e22);"></div>
+                        <span>Mollusks</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #e91e63, #c2185b);"></div>
+                        <span>Corals</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #95a5a6, #7f8c8d);"></div>
+                        <span>Others</span>
+                    </div>
+                </div>
+
+                <!-- Loading Overlay -->
+                <div class="loading-overlay" id="loadingOverlay">
+                    <div class="loading-content">
+                        <div class="spinner"></div>
+                        <h3 id="loadingText">Initializing...</h3>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <p id="progressText">0% complete</p>
+                        <p id="loadingDetails" style="margin-top: 10px; font-size: 14px; opacity: 0.8;"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <script>
+        // Global variables
+        let map;
+        let markersLayer;
+        let markerClusterGroup;
+        let obisData = [];
+        let filteredData = [];
+        let currentDataSources = [];
+
+        // Add this near your other global variables
+// Family-based image mapping using Wikimedia Commons (free images)
+        
+// Family-based image mapping using Wikimedia Commons (free images)
+const FAMILY_IMAGES = {
+    'Scombridae': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Thunnus_obesus.jpg/300px-Thunnus_obesus.jpg',
+    'Carangidae': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Caranx_ignobilis.jpg/300px-Caranx_ignobilis.jpg',
+    'Lutjanidae': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Lutjanus_campechanus.jpg/300px-Lutjanus_campechanus.jpg',
+    'Serranidae': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Epinephelus_morio.jpg/300px-Epinephelus_morio.jpg',
+    'Sparidae': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Pagrus_major.jpg/300px-Pagrus_major.jpg',
+    'Pomacanthidae': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Pomacanthus_imperator.jpg/300px-Pomacanthus_imperator.jpg',
+    'Chaetodontidae': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Chaetodon_auriga.jpg/300px-Chaetodon_auriga.jpg',
+    'Pomacentridae': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Amphiprion_ocellaris.jpg/300px-Amphiprion_ocellaris.jpg',
+    'Labridae': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Thalassoma_bifasciatum.jpg/300px-Thalassoma_bifasciatum.jpg',
+    'Gobiidae': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Gobius_niger.jpg/300px-Gobius_niger.jpg',
+    'Blenniidae': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Parablennius_sanguinolentus.jpg/300px-Parablennius_sanguinolentus.jpg',
+    'Mullidae': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Mullus_barbatus.jpg/300px-Mullus_barbatus.jpg',
+    'Acanthuridae': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Paracanthurus_hepatus.jpg/300px-Paracanthurus_hepatus.jpg',
+    'Balistidae': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Balistes_vetula.jpg/300px-Balistes_vetula.jpg',
+    'Lethrinidae': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Lethrinus_harak.jpg/300px-Lethrinus_harak.jpg',
+    'Haemulidae': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Haemulon_flavolineatum.jpg/300px-Haemulon_flavolineatum.jpg',
+    'Ephippidae': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Platax_teira.jpg/300px-Platax_teira.jpg',
+    'Kyphosidae': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Kyphosus_sydneyanus.jpg/300px-Kyphosus_sydneyanus.jpg',
+    'Siganidae': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Siganus_corallinus.jpg/300px-Siganus_corallinus.jpg',
+    'Nemipteridae': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Nemipterus_japonicus.jpg/300px-Nemipterus_japonicus.jpg',
+    
+};
+
+// Default image for unknown families
+const DEFAULT_FAMILY_IMAGE = 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Fish_icon.svg/300px-Fish_icon.svg.png';
+
+
+        // OBIS Dataset definitions
+        const OBIS_DATASETS = [
+            {
+                id: '31d93350-097e-456c-8e12-8af658c1107b',
+                name: 'IndOBIS Primary Collection',
+                description: 'Main IndOBIS dataset with comprehensive marine biodiversity data',
+                estimatedRecords: 10000
+            }
+        ];
+
+        // Reliable Fish Data Loader Class
+        class ReliableFishDataLoader {
+            constructor() {
+                this.sources = [
+                    {
+                        name: 'FishBase-GBIF',
+                        url: 'https://api.gbif.org/v1/occurrence/search',
+                        params: {
+                            datasetKey: '197908d0-5565-11d8-b290-b8a03c50a862',
+                            country: 'IN',
+                            limit: 300,
+                            hasCoordinate: true
+                        }
+                    },
+                    {
+                        name: 'OBIS-Marine',
+                        url: 'https://api.obis.org/v1/occurrence',
+                        params: {
+                            geometry: 'POLYGON((68 6, 98 6, 98 38, 68 38, 68 6))',
+                            limit: 300
+                        }
+                    }
+                ];
+                this.allFishData = [];
+            }
+
+            async loadFromSource(source, offset = 0) {
+                try {
+                    const params = { ...source.params, offset };
+                    const url = new URL(source.url);
+                    Object.entries(params).forEach(([key, value]) => {
+                        url.searchParams.set(key, value);
+                    });
+
+                    const response = await fetch(url.toString());
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    return this.processSourceData(data, source.name);
+                    
+                } catch (error) {
+                    console.warn(`Failed to load from ${source.name}:`, error.message);
+                    return [];
+                }
+            }
+
+            processSourceData(data, sourceName) {
+                let results = [];
+
+                switch (sourceName) {
+                    case 'FishBase-GBIF':
+                        results = (data.results || []).map(item => ({
+                            scientificName: item.scientificName,
+                            family: item.family,
+                            order: item.order,
+                            class: item.class || 'Actinopterygii',
+                            commonName: item.vernacularName,
+                            latitude: item.decimalLatitude,
+                            longitude: item.decimalLongitude,
+                            source: 'FishBase-GBIF',
+                            occurrence: 'present',
+                            basisOfRecord: item.basisOfRecord,
+                            institutionCode: item.institutionCode || 'GBIF'
+                        }));
+                        break;
+
+                    case 'OBIS-Marine':
+                        results = (data.results || []).map(item => ({
+                            scientificName: item.scientificName,
+                            family: item.family,
+                            order: item.order,
+                            class: item.class || 'Actinopterygii',
+                            commonName: item.vernacularName,
+                            latitude: item.decimalLatitude,
+                            longitude: item.decimalLongitude,
+                            source: 'OBIS-Marine',
+                            occurrence: 'present',
+                            depth: item.minimumDepthInMeters,
+                            institutionCode: item.institutionCode || 'OBIS'
+                        }));
+                        break;
+                }
+
+                return results.filter(item => 
+                    item.scientificName && 
+                    item.scientificName.trim().length > 0 &&
+                    item.latitude && item.longitude &&
+                    Math.abs(item.latitude) <= 90 && 
+                    Math.abs(item.longitude) <= 180
+                );
+            }
+
+            async loadAllFishData(progressCallback) {
+                this.allFishData = [];
+
+                for (let i = 0; i < this.sources.length; i++) {
+                    const source = this.sources[i];
+                    let offset = 0;
+                    let hasMore = true;
+                    let sourceData = [];
+
+                    if (progressCallback) {
+                        progressCallback({
+                            source: source.name,
+                            progress: (i / this.sources.length) * 100,
+                            message: `Loading from ${source.name}...`
+                        });
+                    }
+
+                    while (hasMore && sourceData.length < 1000) {
+                        const batch = await this.loadFromSource(source, offset);
+                        
+                        if (batch.length === 0) {
+                            hasMore = false;
+                        } else {
+                            sourceData = sourceData.concat(batch);
+                            offset += source.params.limit || 200;
+                            
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                        }
+                    }
+
+                    this.allFishData = this.allFishData.concat(sourceData);
+                }
+
+                this.allFishData = this.removeDuplicates(this.allFishData);
+                
+                if (progressCallback) {
+                    progressCallback({
+                        source: 'Complete',
+                        progress: 100,
+                        message: `Loaded ${this.allFishData.length} unique species`,
+                        total: this.allFishData.length
+                    });
+                }
+
+                return this.allFishData;
+            }
+
+            removeDuplicates(data) {
+                const seen = new Set();
+                return data.filter(item => {
+                    const key = item.scientificName?.toLowerCase().trim();
+                    if (seen.has(key)) {
+                        return false;
+                    }
+                    seen.add(key);
+                    return true;
+                });
+            }
+        }
+
+        // Initialize application
+        function initApp() {
+            initMap();
+        }
+
+        // Initialize map with clustering
+        function initMap() {
+            map = L.map('map').setView([15.0, 75.0], 5);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors | Data: OBIS, FishBase'
+            }).addTo(map);
+
+            markerClusterGroup = L.markerClusterGroup({
+                chunkedLoading: true,
+                chunkProgress: updateClusterProgress
+            });
+            
+            markersLayer = L.layerGroup();
+            map.addLayer(markerClusterGroup);
+        }
+
+        // Load OBIS marine data
+        async function loadObisData() {
+            await loadDataFromSource('OBIS', async () => {
+                const records = await loadObisDataset(OBIS_DATASETS[0].id);
+                return processOBISData(records);
+            });
+        }
+
+        // Load single OBIS dataset
+        async function loadObisDataset(datasetId) {
+            const maxRecords = 5000;
+            const batchSize = 1000;
+            let allRecords = [];
+            let offset = 0;
+            let hasMore = true;
+
+            while (hasMore && allRecords.length < maxRecords) {
+                try {
+                    const fields = [
+                        'id', 'scientificName', 'vernacularName', 'decimalLatitude', 'decimalLongitude',
+                        'eventDate', 'minimumDepthInMeters', 'maximumDepthInMeters', 'family', 'class',
+                        'phylum', 'kingdom', 'individualCount', 'basisOfRecord', 'institutionCode'
+                    ].join(',');
+
+                    const url = `https://api.obis.org/v3/occurrence?datasetid=${datasetId}&limit=${batchSize}&offset=${offset}&fields=${fields}`;
+                    
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.results && data.results.length > 0) {
+                        allRecords = allRecords.concat(data.results);
+                        offset += batchSize;
+                        hasMore = data.results.length === batchSize;
+                    } else {
+                        hasMore = false;
+                    }
+                    
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                    
+                } catch (error) {
+                    console.error(`Error loading OBIS batch:`, error);
+                    hasMore = false;
+                }
+            }
+            
+            return allRecords;
+        }
+
+        // Load Indian fish species data
+        async function loadIndianFishData() {
+            const loader = new ReliableFishDataLoader();
+            
+            await loadDataFromSource('FishBase', async (progressCallback) => {
+                const fishData = await loader.loadAllFishData(progressCallback);
+                
+                return fishData.map((fish, index) => ({
+                    id: `fish_${Date.now()}_${index}`,
+                    scientificName: fish.scientificName,
+                    commonName: fish.commonName || '',
+                    latitude: parseFloat(fish.latitude) || 0,
+                    longitude: parseFloat(fish.longitude) || 0,
+                    family: fish.family || 'Unknown',
+                    class: fish.class || 'Actinopterygii',
+                    order: fish.order || 'Unknown',
+                    phylum: 'Chordata',
+                    kingdom: 'Animalia',
+                    type: 'fish',
+                    source: fish.source,
+                    occurrence: fish.occurrence,
+                    institutionCode: fish.institutionCode,
+                    basisOfRecord: fish.basisOfRecord || 'HumanObservation',
+                    individualCount: 1,
+                    depth: { 
+                        min: 0, 
+                        max: fish.depth || 0 
+                    },
+                    date: new Date().toISOString()
+                }));
+            });
+        }
+
+        // Load combined data
+        async function loadCombinedData() {
+            try {
+                updateLoadingState(true, 'Loading combined marine and fish data...', 0);
+                
+                // Load OBIS data first
+                await loadObisData();
+                
+                // Then load fish data
+                await loadIndianFishData();
+                
+                showStatusMessage('Successfully loaded both OBIS marine and fish species data!', 'success');
+            } catch (error) {
+                showStatusMessage('Error loading combined data: ' + error.message, 'error');
+            } finally {
+                updateLoadingState(false);
+            }
+        }
+
+        // Generic data loading function
+        async function loadDataFromSource(sourceName, dataLoader) {
+            const overlay = document.getElementById('loadingOverlay');
+            const loadingText = document.getElementById('loadingText');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            const loadingDetails = document.getElementById('loadingDetails');
+
+            toggleControls(false);
+            overlay.style.display = 'flex';
+            
+            try {
+                loadingText.textContent = `Loading ${sourceName} data...`;
+                loadingDetails.textContent = 'Initializing data retrieval...';
+
+                const progressCallback = (progress) => {
+                    loadingText.textContent = progress.message || `Loading ${sourceName} data...`;
+                    progressFill.style.width = progress.progress + '%';
+                    progressText.textContent = `${Math.round(progress.progress)}% complete`;
+                    loadingDetails.textContent = `Processing from ${progress.source || sourceName}...`;
+                };
+
+                const newData = await dataLoader(progressCallback);
+
+                if (newData && newData.length > 0) {
+                    // Add new data, avoiding duplicates
+                    const existingSpecies = new Set(obisData.map(d => d.scientificName));
+                    const uniqueNewData = newData.filter(item => !existingSpecies.has(item.scientificName));
+                    
+                    obisData = obisData.concat(uniqueNewData);
+                    filteredData = [...obisData];
+                    
+                    if (!currentDataSources.includes(sourceName)) {
+                        currentDataSources.push(sourceName);
+                    }
+
+                    await updateUI();
+                    showStatusMessage(`Successfully loaded ${uniqueNewData.length} new records from ${sourceName}!`, 'success');
+                } else {
+                    showStatusMessage(`No data retrieved from ${sourceName}`, 'error');
+                }
+
+            } catch (error) {
+                console.error(`Failed to load ${sourceName} data:`, error);
+                showStatusMessage(`Failed to load ${sourceName} data: ${error.message}`, 'error');
+            } finally {
+                toggleControls(true);
+                overlay.style.display = 'none';
+            }
+        }
+
+        // Process OBIS data
+        function processOBISData(rawData) {
+            return rawData
+                .filter(record => {
+                    return record.decimalLatitude && 
+                           record.decimalLongitude && 
+                           Math.abs(record.decimalLatitude) <= 90 && 
+                           Math.abs(record.decimalLongitude) <= 180 &&
+                           record.scientificName &&
+                           record.scientificName.trim().length > 0;
+                })
+                .map((record, index) => ({
+                    id: record.id || `obis_${Date.now()}_${index}`,
+                    scientificName: (record.scientificName || 'Unknown').trim(),
+                    commonName: (record.vernacularName || '').trim(),
+                    latitude: parseFloat(record.decimalLatitude),
+                    longitude: parseFloat(record.decimalLongitude),
+                    date: record.eventDate || record.dateIdentified || new Date().toISOString(),
+                    depth: {
+                        min: Math.max(0, parseFloat(record.minimumDepthInMeters) || 0),
+                        max: Math.max(0, parseFloat(record.maximumDepthInMeters) || parseFloat(record.minimumDepthInMeters) || 0)
+                    },
+                    family: (record.family || 'Unknown').trim(),
+                    class: (record.class || '').trim(),
+                    order: (record.order || '').trim(),
+                    phylum: (record.phylum || '').trim(),
+                    kingdom: (record.kingdom || '').trim(),
+                    individualCount: Math.max(1, parseInt(record.individualCount) || 1),
+                    basisOfRecord: (record.basisOfRecord || '').trim(),
+                    institutionCode: (record.institutionCode || 'Unknown').trim(),
+                    source: 'OBIS',
+                    type: categorizeSpecies(record.class || record.phylum || '')
+                }));
+        }
+
+        // Categorize species by taxonomic group
+        function categorizeSpecies(taxonomicGroup) {
+            const categories = {
+                'Actinopterygii': 'fish',
+                'Chondrichthyes': 'fish',
+                'Elasmobranchii': 'fish',
+                'Petromyzontida': 'fish',
+                'Sarcopterygii': 'fish',
+                'Malacostraca': 'crustacean',
+                'Crustacea': 'crustacean',
+                'Copepoda': 'crustacean',
+                'Cirripedia': 'crustacean',
+                'Gastropoda': 'mollusk',
+                'Bivalvia': 'mollusk',
+                'Cephalopoda': 'mollusk',
+                'Polyplacophora': 'mollusk',
+                'Anthozoa': 'coral',
+                'Scleractinia': 'coral',
+                'Cnidaria': 'coral',
+                'Hydrozoa': 'coral'
+            };
+            
+            return categories[taxonomicGroup] || 'fish';
+        }
+
+        // Update all UI components
+        async function updateUI() {
+            updateDataSummary();
+            updateSpeciesList();
+            await createMapMarkers();
+            enableExportButtons();
+        }
+
+        // Update data summary with sources
+        function updateDataSummary() {
+            const uniqueSpecies = [...new Set(obisData.map(r => r.scientificName))];
+            const dates = obisData.map(r => new Date(r.date)).filter(d => !isNaN(d));
+            const depths = obisData.map(r => (r.depth.min + r.depth.max) / 2).filter(d => d > 0);
+            
+            // Count data sources
+            const sources = obisData.reduce((acc, record) => {
+                const source = record.source || 'Unknown';
+                acc[source] = (acc[source] || 0) + 1;
+                return acc;
+            }, {});
+
+            document.getElementById('totalSpecies').textContent = uniqueSpecies.length.toLocaleString();
+            document.getElementById('totalRecords').textContent = obisData.length.toLocaleString();
+            document.getElementById('recordCount').textContent = `Records: ${filteredData.length.toLocaleString()}`;
+            
+            if (dates.length > 0) {
+                const minDate = new Date(Math.min(...dates));
+                const maxDate = new Date(Math.max(...dates));
+                document.getElementById('dateRange').textContent = `${minDate.getFullYear()}-${maxDate.getFullYear()}`;
+            }
+            
+            if (depths.length > 0) {
+                const avgDepth = depths.reduce((a, b) => a + b, 0) / depths.length;
+                document.getElementById('avgDepth').textContent = Math.round(avgDepth) + 'm';
+            }
+
+            // Update data sources list
+            const sourcesList = document.getElementById('dataSourcesList');
+            if (Object.keys(sources).length > 0) {
+                sourcesList.innerHTML = Object.entries(sources).map(([source, count]) => 
+                    `<div class="source-item"><span>${source}</span><strong>${count.toLocaleString()}</strong></div>`
+                ).join('');
+            } else {
+                sourcesList.innerHTML = '<div class="source-item">No data loaded</div>';
+            }
+
+            document.getElementById('currentDataset').textContent = currentDataSources.join(', ') || 'No data loaded';
+        }
+
+        // Create clustered map markers
+        async function createMapMarkers() {
+            markerClusterGroup.clearLayers();
+            
+            if (filteredData.length === 0) return;
+
+            const markers = filteredData.map(record => {
+                const icon = L.divIcon({
+                    className: `species-marker ${record.type}`,
+                    html: getSpeciesIcon(record.type),
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
+                });
+
+                const marker = L.marker([record.latitude, record.longitude], { icon: icon });
+                marker.bindPopup(() => createPopupContent(record));
+                return marker;
+            });
+
+            markerClusterGroup.addLayers(markers);
+
+            if (filteredData.length > 0) {
+                const group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.05));
+            }
+        }
+
+        // Get icon for species type
+        function getSpeciesIcon(type) {
+            const icons = {
+                'fish': '<i class="fas fa-fish"></i>',
+                'crustacean': '<i class="fas fa-spider"></i>',
+                'mollusk': '<i class="fas fa-circle"></i>',
+                'coral': '<i class="fas fa-fan"></i>',
+                'other': '<i class="fas fa-dot-circle"></i>'
+            };
+            return icons[type] || icons['fish'];
+        }
+
+
+                // Get family image URL
+        function getFamilyImage(familyName) {
+            if (!familyName || familyName === 'Unknown') {
+                return DEFAULT_FAMILY_IMAGE;
+            }
+            
+            // Clean and normalize family name
+            const normalizedFamily = familyName.trim();
+            
+            // Fallback image for unknown families
+const DEFAULT_FAMILY_IMAGE = 'images/families/default-fish.jpg';
+
+        }
+
+        // Check if image exists (optional - for better error handling)
+        function checkImageExists(imageUrl) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => resolve(true);
+                img.onerror = () => resolve(false);
+                img.src = imageUrl;
+            });
+        }
+
+        // Create popup content for markers
+        // Create popup content for markers with family images
+        // Create popup content for markers with family images
+    function createPopupContent(record) {
+    const familyImageUrl = getFamilyImage(record.family);
+    
+    return `
+        <div class="popup-content">
+            <h3><i class="fas fa-dna"></i> ${record.scientificName}</h3>
+            
+            <div class="popup-image-container">
+                <img src="${familyImageUrl}" 
+                     alt="${record.family} family representative" 
+                     class="popup-family-image"
+                     onerror="this.src='${DEFAULT_FAMILY_IMAGE}'; this.onerror=null;"
+                     loading="lazy">
+                <div class="popup-image-caption">
+                    Family: ${record.family}
+                </div>
+                <div class="popup-image-attribution">
+                    Image: Wikimedia Commons
+                </div>
+            </div>
+            
+            ${record.commonName ? `<p><strong>Common Name:</strong> ${record.commonName}</p>` : ''}
+            <p><strong>Family:</strong> ${record.family}</p>
+            <p><strong>Class:</strong> ${record.class}</p>
+            <p><strong>Source:</strong> ${record.source}</p>
+            <p><strong>Date Collected:</strong> ${formatDate(record.date)}</p>
+            <p><strong>Depth Range:</strong> ${record.depth.min}m - ${record.depth.max}m</p>
+            <p><strong>Location:</strong> ${record.latitude.toFixed(4)}, ${record.longitude.toFixed(4)}</p>
+            <p><strong>Institution:</strong> ${record.institutionCode}</p>
+            
+            <button class="popup-btn" onclick="focusOnSpecies('${record.scientificName.replace(/'/g, "\\'")}')">
+                <i class="fas fa-search-plus"></i> Show All Records
+            </button>
+        </div>
+        `;
+    }
+
+
+
+        // Update species list with sources
+        function updateSpeciesList() {
+            const uniqueSpecies = [...new Set(filteredData.map(r => r.scientificName))]
+                .sort()
+                .slice(0, 100);
+
+            const listHtml = uniqueSpecies.map(species => {
+                const records = filteredData.filter(r => r.scientificName === species);
+                const firstRecord = records[0];
+                const sources = [...new Set(records.map(r => r.source))];
+                return `
+                    <div class="species-item" onclick="focusOnSpecies('${species.replace(/'/g, "\\'")}')">
+                        <div class="species-name">${species}</div>
+                        <div class="species-info">
+                            ${firstRecord.family} • ${firstRecord.type} • ${records.length} record${records.length > 1 ? 's' : ''}
+                        </div>
+                        <div class="species-source">
+                            Sources: ${sources.join(', ')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('speciesList').innerHTML = listHtml || 
+                '<p style="color: #6c757d; text-align: center; padding: 20px;">No species found with current filters</p>';
+            document.getElementById('speciesCount').textContent = uniqueSpecies.length;
+        }
+
+        // Apply filters to data
+        function applyFilters() {
+            const typeFilter = document.getElementById('speciesFilter').value;
+            const sourceFilter = document.getElementById('sourceFilter').value;
+            const minDepth = parseFloat(document.getElementById('minDepthFilter').value) || 0;
+            const maxDepth = parseFloat(document.getElementById('maxDepthFilter').value) || Infinity;
+            const searchTerm = document.getElementById('searchFilter').value.toLowerCase();
+
+            filteredData = obisData.filter(record => {
+                const matchesType = !typeFilter || record.type === typeFilter;
+                const matchesSource = !sourceFilter || record.source.includes(sourceFilter);
+                const matchesDepth = record.depth.min >= minDepth && record.depth.max <= maxDepth;
+                const matchesSearch = !searchTerm || 
+                    record.scientificName.toLowerCase().includes(searchTerm) ||
+                    record.commonName.toLowerCase().includes(searchTerm) ||
+                    record.family.toLowerCase().includes(searchTerm);
+
+                return matchesType && matchesSource && matchesDepth && matchesSearch;
+            });
+
+            createMapMarkers();
+            updateSpeciesList();
+            document.getElementById('recordCount').textContent = `Records: ${filteredData.length.toLocaleString()}`;
+        }
+
+        // Clear all filters
+        function clearFilters() {
+            document.getElementById('speciesFilter').value = '';
+            document.getElementById('sourceFilter').value = '';
+            document.getElementById('minDepthFilter').value = '';
+            document.getElementById('maxDepthFilter').value = '';
+            document.getElementById('searchFilter').value = '';
+            applyFilters();
+        }
+
+        // Focus map on specific species
+        function focusOnSpecies(speciesName) {
+            const speciesRecords = filteredData.filter(r => r.scientificName === speciesName);
+            
+            if (speciesRecords.length > 0) {
+                const bounds = L.latLngBounds(speciesRecords.map(r => [r.latitude, r.longitude]));
+                map.fitBounds(bounds, { padding: [20, 20] });
+                
+                document.getElementById('searchFilter').value = speciesName;
+                applyFilters();
+            }
+        }
+
+        // Export functions with enhanced metadata
+        function exportToCSV() {
+            const csvContent = convertToCSV(filteredData);
+            downloadFile(csvContent, `marine_fish_export_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv');
+            showStatusMessage(`Exported ${filteredData.length} records to CSV`, 'success');
+        }
+
+        function exportToJSON() {
+            const exportData = {
+                metadata: {
+                    exportDate: new Date().toISOString(),
+                    totalRecords: filteredData.length,
+                    dataSources: currentDataSources,
+                    appliedFilters: {
+                        speciesType: document.getElementById('speciesFilter').value,
+                        dataSource: document.getElementById('sourceFilter').value,
+                        searchTerm: document.getElementById('searchFilter').value
+                    },
+                    source: 'Indian Marine & Fish Biodiversity Explorer'
+                },
+                data: filteredData
+            };
+            const jsonContent = JSON.stringify(exportData, null, 2);
+            downloadFile(jsonContent, `marine_fish_export_${new Date().toISOString().split('T')[0]}.json`, 'application/json');
+            showStatusMessage(`Exported ${filteredData.length} records to JSON`, 'success');
+        }
+
+        function convertToCSV(data) {
+            if (!data.length) return '';
+            
+            const headers = [
+                'scientificName', 'commonName', 'latitude', 'longitude', 'date', 
+                'minDepth', 'maxDepth', 'family', 'class', 'order', 'phylum', 'type', 
+                'source', 'institutionCode', 'individualCount'
+            ];
+            const csvRows = [];
+            
+            csvRows.push(headers.join(','));
+            
+            data.forEach(row => {
+                const values = headers.map(header => {
+                    let value = '';
+                    if (header === 'minDepth') value = row.depth.min;
+                    else if (header === 'maxDepth') value = row.depth.max;
+                    else value = row[header] || '';
+                    
+                    return typeof value === 'string' && value.includes(',') ? `"${value}"` : value;
+                });
+                csvRows.push(values.join(','));
+            });
+            
+            return csvRows.join('\n');
+        }
+
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Clear all data
+        function clearData() {
+            if (confirm('Are you sure you want to clear all loaded data?')) {
+                obisData = [];
+                filteredData = [];
+                currentDataSources = [];
+                markerClusterGroup.clearLayers();
+                
+                // Reset UI
+                document.getElementById('speciesList').innerHTML = '<p style="color: #6c757d; text-align: center; padding: 30px; font-style: italic;">Load data to explore species</p>';
+                document.getElementById('totalSpecies').textContent = '0';
+                document.getElementById('totalRecords').textContent = '0';
+                document.getElementById('recordCount').textContent = 'Records: 0';
+                document.getElementById('dateRange').textContent = '-';
+                document.getElementById('avgDepth').textContent = '0m';
+                document.getElementById('speciesCount').textContent = '0';
+                document.getElementById('currentDataset').textContent = 'Ready to load data...';
+                document.getElementById('dataSourcesList').innerHTML = '<div class="source-item">No data loaded</div>';
+                
+                toggleControls(false, false);
+                showStatusMessage('All data cleared successfully', 'success');
+            }
+        }
+
+        // Utility functions
+        function formatDate(dateString) {
+            try {
+                return new Date(dateString).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            } catch {
+                return 'Unknown';
+            }
+        }
+
+        function updateClusterProgress(processed, total, elapsed) {
+            // Optional: Show clustering progress
+        }
+
+        function enableExportButtons() {
+            document.getElementById('exportCsvBtn').disabled = false;
+            document.getElementById('exportJsonBtn').disabled = false;
+            document.getElementById('clearBtn').disabled = false;
+        }
+
+        function toggleControls(enabled, includeExport = true) {
+            document.getElementById('loadObisBtn').disabled = !enabled;
+            document.getElementById('loadFishBtn').disabled = !enabled;
+            document.getElementById('loadBothBtn').disabled = !enabled;
+            
+            if (includeExport) {
+                document.getElementById('exportCsvBtn').disabled = !enabled || filteredData.length === 0;
+                document.getElementById('exportJsonBtn').disabled = !enabled || filteredData.length === 0;
+                document.getElementById('clearBtn').disabled = !enabled || obisData.length === 0;
+            }
+        }
+
+        function updateLoadingState(show, message = '', progress = 0) {
+            const overlay = document.getElementById('loadingOverlay');
+            const loadingText = document.getElementById('loadingText');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+
+            overlay.style.display = show ? 'flex' : 'none';
+            if (show) {
+                loadingText.textContent = message;
+                progressFill.style.width = progress + '%';
+                progressText.textContent = `${Math.round(progress)}% complete`;
+            }
+        }
+
+        function showStatusMessage(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message ${type}`;
+            statusDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initApp);
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement(
+                {
+                    pageLanguage: 'en',
+                    includedLanguages: 'hi,ta,te,gu,bn,mr,ml,kn,or,pa', // Indian languages
+                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                    autoDisplay: false
+                }, 
+                'google_translate_element'
+            );
+        }
+    </script>
+</body>
+</html>
