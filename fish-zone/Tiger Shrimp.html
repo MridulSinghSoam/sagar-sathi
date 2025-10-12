@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpheidae Pistol Shrimp 3D Viewer - Interactive Model</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .viewer-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1000px;
+            width: 100%;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            color: #2c5aa0;
+            font-size: 2.5em;
+            margin-bottom: 8px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header h2 {
+            color: #555;
+            font-size: 1.2em;
+            font-weight: 400;
+            margin-bottom: 15px;
+        }
+
+        .species-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            text-align: left;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #2c5aa0;
+            min-width: 80px;
+        }
+
+        .info-value {
+            color: #333;
+        }
+
+        .model-container {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+            margin-bottom: 20px;
+            position: relative;
+            height: 650px;
+            background: #1a1a1a;
+        }
+
+        #threejs-container {
+            width: 100%;
+            height: 100%;
+            border-radius: 15px;
+        }
+
+        .premium-notice {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 400px;
+            z-index: 100;
+        }
+
+        .premium-notice h3 {
+            color: #2c5aa0;
+            margin-bottom: 15px;
+        }
+
+        .premium-notice p {
+            margin-bottom: 15px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .purchase-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .purchase-btn:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .controls-info {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .controls-info h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .controls-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+            text-align: left;
+            color: #555;
+        }
+
+        .control-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-navigation {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+
+        .back-btn {
+            background: rgba(44, 90, 160, 0.9);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: rgba(44, 90, 160, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(44, 90, 160, 0.4);
+        }
+
+        .model-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .model-info h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .model-info p {
+            color: #856404;
+            margin-bottom: 8px;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+            color: white;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .viewer-container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .model-container {
+                height: 400px;
+            }
+
+            .species-info {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .controls-list {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .back-navigation {
+                position: relative;
+                top: 0;
+                left: 0;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+
+            .premium-notice {
+                max-width: 90%;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .model-container {
+                height: 300px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Back Navigation -->
+    <div class="back-navigation">
+        <a href="javascript:history.back()" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Map
+        </a>
+    </div>
+
+    <div class="viewer-container fade-in">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                <i class="fas fa-shrimp"></i>
+                Alpheidae Pistol Shrimp
+            </h1>
+            <h2>Alpheus heterochaelis - Snapping Shrimp</h2>
+        </div>
+
+        <!-- Species Information -->
+        <div class="species-info">
+            <div class="info-item">
+                <span class="info-label"><i class="fas fa-ruler-horizontal"></i> Size:</span>
+                <span class="info-value">3-5 cm (1-2 inches)</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label"><i class="fas fa-weight"></i> Weight:</span>
+                <span class="info-value">2-5 grams</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label"><i class="fas fa-map-marker-alt"></i> Habitat:</span>
+                <span class="info-value">Tropical coral reefs</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label"><i class="fas fa-birthday-cake"></i> Lifespan:</span>
+                <span class="info-value">3-4 years</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label"><i class="fas fa-utensils"></i> Diet:</span>
+                <span class="info-value">Small fish, worms, plankton</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label"><i class="fas fa-shield-alt"></i> Status:</span>
+                <span class="info-value">Least Concern</span>
+            </div>
+        </div>
+
+        <!-- Model Quality Information -->
+        <div class="model-info">
+            <h4><i class="fas fa-star"></i> Premium 3D Model</h4>
+            <p><strong>Quality:</strong> 123.9k triangles, 75.1k vertices</p>
+            <p><strong>Textures:</strong> 3 PBR materials with high-resolution textures</p>
+            <p><strong>Formats:</strong> GLB, GLTF, USDZ, FBX available</p>
+        </div>
+
+        <!-- 3D Model Container -->
+        <div class="model-container">
+            <div id="threejs-container"></div>
+            
+            <!-- Premium Model Notice -->
+            <div class="premium-notice" id="premiumNotice">
+                <h3><i class="fas fa-lock"></i> Premium Model</h3>
+                <p>This high-quality 3D model is available for <strong>$25</strong> from Sketchfab.</p>
+                <p>After purchase, place the <code>pistol-shrimp.glb</code> file in your <code>models/</code> folder to view it here.</p>
+                <a href="https://sketchfab.com/3d-models/alpheidae-pistol-shrimp-662f6f42afc94b009d967d6a8ac60058" 
+                   target="_blank" class="purchase-btn">
+                    <i class="fas fa-shopping-cart"></i> Purchase Model
+                </a>
+            </div>
+
+            <!-- Loading Overlay -->
+            <div class="loading-overlay hidden" id="loadingOverlay">
+                <div class="spinner"></div>
+                <h3>Loading 3D Model...</h3>
+                <p>Please wait while the interactive model loads</p>
+            </div>
+        </div>
+
+        <!-- Controls Information -->
+        <div class="controls-info">
+            <h3>
+                <i class="fas fa-mouse"></i>
+                Interactive Controls
+            </h3>
+            <div class="controls-list">
+                <div class="control-item">
+                    <i class="fas fa-mouse"></i>
+                    <span><strong>Left Click + Drag:</strong> Rotate model</span>
+                </div>
+                <div class="control-item">
+                    <i class="fas fa-scroll"></i>
+                    <span><strong>Scroll Wheel:</strong> Zoom in/out</span>
+                </div>
+                <div class="control-item">
+                    <i class="fas fa-hand-paper"></i>
+                    <span><strong>Right Click + Drag:</strong> Pan view</span>
+                </div>
+                <div class="control-item">
+                    <i class="fas fa-expand"></i>
+                    <span><strong>Double Click:</strong> Reset view</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        let scene, camera, renderer, controls, mixer;
+        let modelLoaded = false;
+
+        // Initialize the 3D viewer
+        function init() {
+            const container = document.getElementById('threejs-container');
+            
+            // Create scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a2e);
+
+            // Create camera
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(5, 3, 8);
+
+            // Create renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.setClearColor(0x1a1a2e);
+            container.appendChild(renderer.domElement);
+
+            // Add lights
+            setupLighting();
+
+            // Add controls
+            setupControls();
+
+            // Try to load the model
+            loadModel();
+
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function setupLighting() {
+            // Ambient light
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+            scene.add(ambientLight);
+
+            // Directional light
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 10, 5);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            scene.add(directionalLight);
+
+            // Point lights for dramatic effect
+            const pointLight1 = new THREE.PointLight(0x3498db, 0.4, 20);
+            pointLight1.position.set(-5, 5, 5);
+            scene.add(pointLight1);
+
+            const pointLight2 = new THREE.PointLight(0xe74c3c, 0.3, 15);
+            pointLight2.position.set(5, -3, -5);
+            scene.add(pointLight2);
+        }
+
+        function setupControls() {
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = false;
+            controls.minDistance = 2;
+            controls.maxDistance = 20;
+            controls.maxPolarAngle = Math.PI;
+
+            // Double click to reset
+            renderer.domElement.addEventListener('dblclick', () => {
+                camera.position.set(5, 3, 8);
+                controls.target.set(0, 0, 0);
+                controls.update();
+            });
+        }
+
+        function loadModel() {
+            const loader = new THREE.GLTFLoader();
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const premiumNotice = document.getElementById('premiumNotice');
+
+            // Show loading overlay
+            loadingOverlay.classList.remove('hidden');
+            premiumNotice.style.display = 'none';
+
+            // Try to load the model
+            loader.load(
+                'models/pistol-shrimp.glb', // Expected path after purchase
+                
+                // Success callback
+                function(gltf) {
+                    console.log('Model loaded successfully');
+                    modelLoaded = true;
+                    
+                    const model = gltf.scene;
+                    
+                    // Scale and position the model
+                    model.scale.setScalar(0.5);
+                    model.position.set(0, -1, 0);
+                    
+                    // Enable shadows
+                    model.traverse(function(child) {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+
+                    // Check for animations
+                    if (gltf.animations && gltf.animations.length > 0) {
+                        mixer = new THREE.AnimationMixer(model);
+                        gltf.animations.forEach(clip => {
+                            const action = mixer.clipAction(clip);
+                            action.play();
+                        });
+                    }
+
+                    scene.add(model);
+                    loadingOverlay.classList.add('hidden');
+                    
+                    // Focus camera on model
+                    const box = new THREE.Box3().setFromObject(model);
+                    const center = box.getCenter(new THREE.Vector3());
+                    controls.target.copy(center);
+                    controls.update();
+                },
+                
+                // Progress callback
+                function(progress) {
+                    const percent = Math.round((progress.loaded / progress.total) * 100);
+                    console.log(`Loading progress: ${percent}%`);
+                },
+                
+                // Error callback
+                function(error) {
+                    console.log('Model not found - showing premium notice');
+                    loadingOverlay.classList.add('hidden');
+                    premiumNotice.style.display = 'block';
+                    
+                    // Add a placeholder object
+                    addPlaceholderShrimp();
+                }
+            );
+        }
+
+        function addPlaceholderShrimp() {
+            // Create a simple shrimp-like placeholder
+            const group = new THREE.Group();
+            
+            // Body
+            const bodyGeometry = new THREE.CylinderGeometry(0.3, 0.5, 2, 8);
+            const bodyMaterial = new THREE.MeshPhongMaterial({ color: 0xff6b6b });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.rotation.z = Math.PI / 2;
+            group.add(body);
+            
+            // Tail
+            const tailGeometry = new THREE.ConeGeometry(0.3, 1, 6);
+            const tail = new THREE.Mesh(tailGeometry, bodyMaterial);
+            tail.position.set(-1.5, 0, 0);
+            tail.rotation.z = -Math.PI / 2;
+            group.add(tail);
+            
+            // Large claw (pistol shrimp characteristic)
+            const clawGeometry = new THREE.SphereGeometry(0.4, 8, 8);
+            const clawMaterial = new THREE.MeshPhongMaterial({ color: 0xff4757 });
+            const claw = new THREE.Mesh(clawGeometry, clawMaterial);
+            claw.position.set(0.8, 0.3, 0);
+            claw.scale.set(1.5, 0.8, 0.8);
+            group.add(claw);
+            
+            group.position.set(0, 0, 0);
+            scene.add(group);
+            
+            // Add simple rotation animation
+            function animatePlaceholder() {
+                group.rotation.y += 0.01;
+            }
+            
+            const animateLoop = function() {
+                requestAnimationFrame(animateLoop);
+                animatePlaceholder();
+            };
+            animateLoop();
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('threejs-container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Update mixer for animations
+            if (mixer) {
+                mixer.update(0.016); // 60fps
+            }
+            
+            // Update controls
+            controls.update();
+            
+            // Render
+            renderer.render(scene, camera);
+        }
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            init();
+            animate();
+        });
+
+        // Add some interactivity
+        document.querySelector('.viewer-container').addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.01)';
+        });
+
+        document.querySelector('.viewer-container').addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    </script>
+</body>
+</html>

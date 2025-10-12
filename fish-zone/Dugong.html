@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dugong Swimming 3D Viewer - Interactive Model</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .viewer-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1000px;
+            width: 100%;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            color: #2c5aa0;
+            font-size: 2.5em;
+            margin-bottom: 8px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header h2 {
+            color: #555;
+            font-size: 1.2em;
+            font-weight: 400;
+            margin-bottom: 15px;
+        }
+
+        .species-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            text-align: left;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #2c5aa0;
+            min-width: 80px;
+        }
+
+        .info-value {
+            color: #333;
+        }
+
+        .conservation-alert {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .conservation-alert h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .conservation-alert p {
+            color: #856404;
+            line-height: 1.6;
+        }
+
+        .model-container {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .model-iframe {
+            width: 100%;
+            height: 650px;
+            border: none;
+            display: block;
+        }
+
+        .controls-info {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .controls-info h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .controls-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+            text-align: left;
+            color: #555;
+        }
+
+        .control-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-navigation {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+
+        .back-btn {
+            background: rgba(44, 90, 160, 0.9);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: rgba(44, 90, 160, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(44, 90, 160, 0.4);
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            border: 4px solid rgba(44, 90, 160, 0.2);
+            border-top: 4px solid #2c5aa0;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .viewer-container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .model-iframe {
+                height: 400px;
+            }
+
+            .species-info {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .controls-list {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .back-navigation {
+                position: relative;
+                top: 0;
+                left: 0;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .model-iframe {
+                height: 300px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Back Navigation -->
+    <div class="back-navigation">
+        <a href="javascript:history.back()" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Map
+        </a>
+    </div>
+
+    <div class="viewer-container fade-in">
+    
+        <div class="header">
+            <h1>
+                <i class="fas fa-swimmer"></i>
+                Dugong Swimming
+            </h1>
+            <h2>Dugong dugon - Sea Cow</h2>
+        </div>
+
+        <div class="model-container">
+            <iframe 
+                class="model-iframe"
+                title="Dugong Swimming 3D Interactive Model"
+                allowfullscreen 
+                mozallowfullscreen="true" 
+                webkitallowfullscreen="true" 
+                allow="autoplay; fullscreen; vr"
+                src="https://sketchfab.com/models/d310edf15bf4482081596adef0f81094/embed?ui_controls=1&ui_infos=0&ui_watermark=0&ui_help=0&ui_settings=0&ui_inspector=0&ui_annotations=0&ui_stop=0&ui_vr=0&autostart=1&autospin=0.2&preload=1&camera=0">
+            </iframe>
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="spinner"></div>
+                <h3>Loading 3D Model...</h3>
+                <p>Please wait while the swimming dugong model loads</p>
+            </div>
+        </div>
+
+        <div class="controls-info">
+            <h3>
+                <i class="fas fa-mouse"></i>
+                Interactive Controls
+            </h3>
+            <div class="controls-list">
+                <div class="control-item">
+                    <i class="fas fa-mouse"></i>
+                    <span><strong>Left Click + Drag:</strong> Rotate model</span>
+                </div>
+                <div class="control-item">
+                    <i class="fas fa-scroll"></i>
+                    <span><strong>Scroll Wheel:</strong> Zoom in/out</span>
+                </div>
+                <div class="control-item">
+                    <i class="fas fa-hand-paper"></i>
+                    <span><strong>Right Click + Drag:</strong> Pan view</span>
+                </div>
+                <div class="control-item">
+                    <i class="fas fa-play"></i>
+                    <span><strong>Swimming Animation:</strong> Plays automatically</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const iframe = document.querySelector('.model-iframe');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            
+            setTimeout(() => {
+                loadingOverlay.classList.add('hidden');
+            }, 3000);
+            
+            iframe.addEventListener('load', function() {
+                setTimeout(() => {
+                    loadingOverlay.classList.add('hidden');
+                }, 1000);
+            });
+        });
+
+        document.querySelector('.viewer-container').addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.01)';
+        });
+
+        document.querySelector('.viewer-container').addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    </script>
+</body>
+</html>
